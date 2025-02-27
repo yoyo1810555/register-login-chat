@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手机号注册</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>注册新账号</h2>
+    <input type="tel" id="phone" placeholder="手机号">
+    <br><br>
+    <button onclick="sendCode()">发送验证码</button>
+    <br><br><br>
+    <input type="text" id="code" placeholder="验证码">
+    <br><br>
+    <button onclick="register()">注册</button><hr>
+    <a href="http://localhost:5500/login.html" >已有账号?直接登录</a> 
+  </div>
+
+  <script>
+
+    async function sendCode() {
+      const phone = document.getElementById('phone').value;
+      const response = await fetch('http://localhost:3001/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone })
+      });
+      const result = await response.json();
+      alert(result.success ? '验证码已发送！' : '发送失败');
+    }
+    
+    async function register() {
+      const phone = document.getElementById('phone').value;
+      const code = document.getElementById('code').value;
+      const response = await fetch('http://localhost:3001/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone, code: code })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        window.location.href = 'http://localhost:5500/new_reg.html';
+        alert('注册成功！');
+      
+    }else {
+      `失败：${result.message}`
+    }
+  }
+  </script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天页面</title>
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    
+    <div class="container">
+        <!-- 左边栏：好友列表 -->
+        <div class="sidebar">
+            <h2>好友列表</h2>
+
+            <div class="add-friend">
+                <input type="text" id="friendAccount" placeholder="输入好友账号">
+                <button onclick="addFriend()">添加好友</button>
+            </div>
+            <ul class="friends-list"></ul>
+      <div class="friend-requests">
+                <h3>待处理请求</h3>
+                <ul id="requestList"></ul>
+            </div>
+        </div>
+        
+        <!-- 聊天框 -->
+        <div class="chatbox">
+            <div class="header">
+                <h2>聊天</h2>
+              
+            </div>
+            <div class="messages"></div>
+            <div class="input-container">
+                <input type="text" id="messageInput" placeholder="输入消息...">
+                <button id="sendButton">发送</button>
+            </div>
+        </div>
+       
+            <div class="user-avatar">
+              <img src="8453C9EF060A9FA5090B84890025531C.jpg" alt="用户头像" class="avatar">                
+                    
+              <div class="account-info">
+                <p>账号: <span id="accountNumber"></span></p>
+                <p>用户名: <span id="username"></span></p>
+                <button onclick="logout()">退出登录</button>
+              </div>
+            </div>
+    </div>
+
+
+    <script>
+        
+        let currentUser = null; 
+        let selectedFriend = null;
+        
+
+async function apiRequest(url, method, data) {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    // 检查响应内容类型
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`服务器返回非 JSON 数据: ${text.slice(0, 50)}`);
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '请求失败');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API 请求错误:', error);
+    alert(error.message);
+    throw error;
+  }
+}
+        //
+        function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+        }
+
+        async function addFriend() {
+        const friendAccount = document.getElementById('friendAccount').value.trim();
+        if (!friendAccount) {
+            alert('请输入好友账号');
+            return;
+        }
+
+        try {                               
+            const result = await apiRequest(
+            'http://localhost:3004/api/friends',
+            'POST',
+            { userAccount: currentUser, friendAccount }
+            );
+            alert(result.message);
+            document.getElementById('friendAccount').value = '';
+            await loadPendingRequests();
+        } catch (error) {
+            
+        }
+        }
+        // 初始化用户信息
+            // 在 initUserInfo 中添加 token 检查
+            async function initUserInfo() {
+                const token = localStorage.getItem('token'); // 新增
+                const account = localStorage.getItem('account');
+                const username = localStorage.getItem('username');
+                console.log('Token:', token); // 调试日志
+                console.log('Account:', account); // 调试日志
+                console.log('Username:', username); // 调试日志
+                
+                if (!token || !account || !username) { // 检查 token
+                    window.location.href = 'http://localhost:5500/login.html';
+                }
+                
+                currentUser = account;
+                await initChat(currentUser); // 初始化好友列表
+                await loadPendingRequests();
+               
+                document.getElementById('accountNumber').textContent = account;
+                document.getElementById('username').textContent = username;
+            }
+
+            // 退出登录
+            function logout() {
+            localStorage.removeItem('account');
+            localStorage.removeItem('username');
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            }
+
+            // 初始化
+            initUserInfo();
+
+
+        // 初始化聊天界面
+    // person.html 修改initChat函数
+    async function initChat(userAccount) {
+    currentUser = userAccount;
+    try {
+        // 使用认证的apiRequest代替fetch
+        const friends = await apiRequest(
+        `http://localhost:3004/api/friends/${userAccount}`,
+        'GET'
+        );
+        renderFriends(friends);
+    } catch (error) {
+        console.error('加载好友列表失败:', error);
+    }
+    }
+
+        // 渲染好友列表
+        function renderFriends(friends) {
+            const list = document.querySelector('.friends-list');
+            list.innerHTML = friends.map(friend => `
+                <li class="friend" data-account="${friend.account}">
+                ${friend.username}
+                <span class="status">${friend.status === 'accepted' ? '✓' : '待确认'}</span>
+                </li>
+            `).join('');
+        }
+
+        // 在前端 script 中添加消息发送的完整逻辑
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content) {
+                alert('消息内容不能为空');
+                return;
+            }
+
+            if (!selectedFriend) {
+                alert('请先选择好友');
+                return;
+            }
+
+            try {
+                await apiRequest(
+                'http://localhost:3004/api/messages',
+                'POST',
+                { sender: currentUser, receiver: selectedFriend, content }
+                );
+                input.value = '';
+                await loadChatHistory();
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                alert('消息发送失败，请检查网络');
+            }
+         });
+
+        // 加载聊天记录
+        async function loadChatHistory() {
+            try {
+                const messages = await apiRequest(
+                    `http://localhost:3004/api/messages/${currentUser}/${selectedFriend}`,
+                    'GET'
+                );
+                
+                const container = document.querySelector('.messages');
+                container.innerHTML = messages.map(msg => `
+                    <div class="message ${msg.sender === currentUser ? 'sent' : 'received'}">
+                        <div class="content">${escapeHtml(msg.content)}</div>
+                        <div class="time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                    </div>
+                `).join('');
+                
+                container.scrollTop = container.scrollHeight;
+            } catch (error) {
+                console.error('加载聊天记录失败:', error);
+            }
+        }
+
+        // 好友点击事件
+        document.querySelector('.sidebar').addEventListener('click', async (e) => {
+        if (e.target.classList.contains('friend')) {
+            selectedFriend = e.target.dataset.account;
+            console.log('[DEBUG] Selected Friend:', selectedFriend);
+            document.querySelector('.header h2').textContent = 
+            `与 ${e.target.textContent} 的聊天`;
+            
+            loadChatHistory();
+        }
+          //  container.scrollTop = container.scrollHeight;
+        });
+;
+        // 确保已登录
+        const token = localStorage.getItem('token');
+        if (!token) {
+        window.location.href = '/login.html';
+        }
+      
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+        
+                // 初始化时加载待处理请求
+                async function loadPendingRequests() {
+                    try {
+                        const requests = await apiRequest(
+                        `http://localhost:3004/api/friends/pending/${currentUser}`,
+                        'GET'
+                        );
+                        
+                        const list = document.getElementById('requestList');
+                        list.innerHTML = requests.map(req => `
+                        <li>
+                            <span>${req.username} (${req.account})</span>
+                            <div class="request-actions">
+                            <button onclick="confirmRequest('${req.account}')">接受</button>
+                            <button onclick="rejectRequest('${req.account}')">拒绝</button>
+                            </div>
+                        </li>
+                        `).join('');
+                    } catch (err) {
+                        console.error('加载请求失败:', err);
+                    }
+                }
+        // 确认好友请求
+        async function confirmRequest(friendAccount) {
+            try {
+                await apiRequest(
+                'http://localhost:3004/api/friends/confirm',
+                'PUT',
+                { userAccount: currentUser, friendAccount }
+                );
+                await loadPendingRequests();
+                await initChat(currentUser);
+            } catch (err) {
+                console.error('确认请求失败:', err);
+            }
+        }
+        //拒绝函数
+            async function rejectRequest(friendAccount) {
+            try {
+                await apiRequest(
+                'http://localhost:3004/api/friends/reject',
+                'DELETE',
+                { userAccount: currentUser, friendAccount }
+                );
+                await loadPendingRequests(); // 刷新列表
+            } catch (err) {
+                console.error('拒绝请求失败:', err);
+            }
+            }
+    </script>
+</body>
+</html>

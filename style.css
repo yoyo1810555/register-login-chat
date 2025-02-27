@@ -1,0 +1,92 @@
+body, html {
+    height: 100%;
+    
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* 防止滚动条出现 */
+    font-family: Arial, sans-serif;
+}
+
+/* 创建一个用于背景渐变的伪元素 */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FFC0CB, #ADD8E6); /* 柔和的粉蓝渐变 */
+    z-index: -1; /* 确保伪元素在内容下方 */
+    
+}
+
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.9); /* 半透明白色背景，以便更好地看到渐变 */
+    padding: 50px;
+    width: 700px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    box-sizing: border-box; /* 确保padding不会增加容器大小 */
+    
+}
+
+/* 其他样式保持不变 */
+h2 {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+
+.container input[type="text"], .container input[type="tel"] {
+    width: 300px; /* 或者您想要的具体宽度 */
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
+button {
+    width: 200px;
+    padding: 10px;
+    background-color: #FF69B4; /* 粉色按钮 */
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #FF4500; /* 深粉色按钮悬停效果 */
+}
+
+button:active{
+    background-color: #FF69b4;
+}

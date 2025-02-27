@@ -1,0 +1,345 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FFC0CB, #ADD8E6); /* 柔和的粉蓝渐变 */
+    z-index: -1; /* 确保伪元素在内容下方 */
+    
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    gap: 20px;
+}
+
+.sidebar {
+  width: 280px;
+  min-width: 280px; /* 禁止收缩 */
+  height: 100%;
+  overflow-y: auto;
+    background-color: #333;
+    background: linear-gradient(135deg, #FFC0CB, #ADD8E6);
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.sidebar h2 {
+    margin-top: 0;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.sidebar li:hover {
+    background-color: #444;
+}
+
+.chatbox {
+    flex-grow: 1;
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex-direction: column;
+    background-color: #f4f4f4;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.chatbox .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+
+.chatbox .input-container {
+    display: flex;
+}
+
+.chatbox #messageInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.chatbox #sendButton {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.chatbox #sendButton:hover {
+    background-color: #0056b3;
+}
+
+/* 头像容器 */
+.user-avatar {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  transition: 0.3s;
+}
+  
+  /* 头像图片 */
+  .avatar {
+    
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+  }
+  
+  .avatar:hover {
+    transform: scale(1.1);
+  }
+  /* 修改或添加以下CSS到style2.css */
+
+/* 替换原有.message样式 */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message {
+  max-width: 70%;
+  padding: 12px;
+  border-radius: 15px;
+  position: relative;
+}
+
+/* 发送消息（右侧） */
+.message.sent {
+  background: #00a3ff;
+  color: white;
+  margin-left: auto;
+}
+
+.message.received {
+  background: #ffffff;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.time {
+  font-size: 0.8em;
+  margin-top: 5px;
+  opacity: 0.8;
+}
+
+/* 消息头像 */
+.message .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 消息内容容器 */
+.message .content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 时间戳样式 */
+.message.sent .time {
+  color: rgba(255,255,255,0.8);
+}
+
+.message.received .time {
+  color: rgba(0,0,0,0.6);
+}
+
+/* 气泡小箭头 */
+.message.sent::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 12px;
+  border: 8px solid transparent;
+  border-left-color: #00a3ff;
+}
+
+.message.received::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  border: 8px solid transparent;
+  border-right-color: #ffffff;
+}
+
+/* 调整输入框位置 */
+.input-container {
+  margin-top: 20px;
+  padding: 15px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+  
+  /* 账号信息浮层 */
+  .account-info {
+    position: absolute;
+    left: 60px;
+    bottom: 0;
+    width: 200px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .user-avatar:hover .account-info {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* 账号信息内容 */
+  .account-info p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .account-info button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .account-info button:hover {
+    background: #ff1a1a;
+  }
+
+  .add-friend {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .add-friend input {
+    width: 70%;
+    padding: 8px;
+    margin-right: 5px;
+  }
+  
+  .add-friend button {
+    background: #62a7e0;
+    color: rgb(1, 0, 0);
+  }
+
+  .friend-requests {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .friend-requests h3 {
+    color: #666;
+    font-size: 14px;
+    margin: 5px 0;
+  }
+  
+  #requestList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #b04e8f;
+    color: #090000;
+    margin: 3px 0;
+    border-bottom: 1px solid #eee;
+    border-radius: 4px;
+  }
+  
+  .request-actions button {
+    margin-left: 5px;
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  /* 添加加载状态样式 */
+.add-friend button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 错误提示样式 */
+.error-message {
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.friends-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.friends-list li {
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.friends-list li:hover {
+  background: #f5f5f5;
+}

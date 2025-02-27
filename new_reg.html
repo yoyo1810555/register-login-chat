@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置新账号</title>
+    <link rel="stylesheet" href="style_new.css">
+</head>
+<body>
+    <div class="container">
+        <h2>创建新账号</h2>
+        <div id="registerForm">
+            <p>请输入您想要的用户名:</p>
+            <input type="text" id="username" placeholder="请输入用户名" required><br><br><br>
+            <p>请确认您的密码:</p>
+            <input type="password" id="password" placeholder="请输入密码" required><br><br><br><br>
+            <button onclick="handleRegister()">立即注册</button>
+        </div>
+
+        <!-- 消息提示 -->
+        <div id="message" class="message"></div>
+
+        <!-- 注册成功信息 -->
+        <div id="successInfo" class="account-info" style="display: none;">
+            <h3>🎉 注册成功！</h3>
+            <p>您的账号是: <strong id="accountNumber"></strong></p>
+            <p>请务必妥善保存此账号，这是您登录的唯一凭证！</p>
+            <button onclick="gonext()">确认</button>
+        </div>
+    </div>
+
+    <script>
+        async function handleRegister() {
+            // 获取页面元素
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const messageDiv = document.getElementById('message');
+            const button = document.querySelector('button');
+
+            // 清空消息提示
+            messageDiv.style.display = 'none';
+
+            // 输入验证
+            if (!username || !password) {
+                showMessage('error', '用户名和密码不能为空');
+                return;
+            }
+            try {
+                // 禁用按钮防止重复提交
+                button.disabled = true;
+                button.textContent = '注册中...';
+
+                // 发送注册请求
+                const response = await fetch('http://localhost:3002/api/new_reg', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 显示成功信息
+                    document.getElementById('successInfo').style.display = 'block';
+                    document.getElementById('accountNumber').textContent = data.account;
+                    document.getElementById('registerForm').style.display = 'none';
+                } else {
+                    showMessage('error', data.message || '注册失败');
+                }
+            } catch (error) {
+                showMessage('error', '网络错误，请稍后重试');
+                console.error('注册错误:', error);
+            } finally {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.textContent = '立即注册';
+            }
+        }
+
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+        }
+    </script>
+    <script>
+        async function gonext() {
+            window.location.href = 'http://localhost:5500/person.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang ="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>登录</title>
+        <link rel="stylesheet" href="style_login.css">
+    </head>
+
+
+<body>
+    <div class="container">
+        <h2>登录</h2>
+        <div id="loginForm">
+            <input type="text" id="loginAccount" placeholder="请输入9位账号"><br><br><br>
+            <input type="password" id="loginPassword" placeholder="请输入密码">
+        <br><br><br><br>
+        <button onclick="handleLogin()">立即登录</button>
+
+        </div>
+        <div id="loginMessage" class="message"></div>
+    </div>
+    <script>
+           
+            async function handleLogin() {
+            const account = document.getElementById('loginAccount').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const messageDiv = document.getElementById('loginMessage');
+            const button = document.querySelector('#loginForm button');
+
+            messageDiv.style.display = 'none';
+
+            if (!account || !password) {
+                showLoginMessage('error', '账号和密码不能为空');
+                return;
+            }
+
+            try {
+                button.disabled = true;
+                button.textContent = '登录中...';
+
+                const response = await fetch('http://localhost:3003/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 正确存储 token、account 和 username
+                    localStorage.setItem('token', data.token);   // 使用正确的键名 'token'
+                    localStorage.setItem('account', account);
+                    localStorage.setItem('username', data.username);
+                    
+                    showLoginMessage('success', `欢迎回来，${data.username}！`);
+                    
+                    // 登录成功后跳转逻辑
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:5500/person.html';
+                    }, 1500);
+                } else {
+                    showLoginMessage('error', data.message);
+                }
+            } catch (error) {
+                showLoginMessage('error', '网络连接异常');
+                console.error('登录失败:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = '立即登录';
+            }
+        }
+
+        function showLoginMessage(type, text) {
+            const div = document.getElementById('loginMessage');
+            div.className = `message ${type}`;
+            div.textContent = text;
+            div.style.display = 'block';
+        }
+    </script>
+
+
+
+</body>
+</html>
